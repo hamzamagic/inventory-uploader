@@ -1,11 +1,92 @@
 ---
-import Welcome from '../components/Welcome.astro';
-import Layout from '../layouts/Layout.astro';
-
-// Welcome to Astro! Wondering what to do next? Check out the Astro documentation at https://docs.astro.build
-// Don't want to use any of this? Delete everything in this file, the `assets`, `components`, and `layouts` directories, and start fresh.
 ---
 
-<Layout>
-	<Welcome />
-</Layout>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Inventory Report Uploader</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-gradient-to-br from-gray-100 to-gray-200 min-h-screen flex items-center justify-center font-sans">
+    <div class="bg-white shadow-2xl rounded-3xl p-10 w-full max-w-xl">
+      <h1 class="text-3xl font-extrabold text-gray-800 mb-6 text-center">
+        Upload Inventory Files
+      </h1>
+
+      <form id="uploadForm" class="space-y-6">
+        <div>
+          <label
+            for="fileInput"
+            class="block mb-2 text-sm font-medium text-gray-700"
+            >Select a folder with images and audio:</label
+          >
+          <input
+            type="file"
+            id="fileInput"
+            multiple
+            class="block w-full text-sm text-gray-600 border border-gray-300 rounded-xl p-2"
+          />
+        </div>
+
+        <button
+          type="submit"
+          class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 rounded-xl transition duration-200"
+        >
+          Upload and Generate Report
+        </button>
+      </form>
+
+      <div
+        id="status"
+        class="mt-6 text-sm text-center text-gray-700 font-medium"
+      ></div>
+    </div>
+
+    <script type="module">
+      const form = document.getElementById('uploadForm');
+      const input = document.getElementById('fileInput');
+      const status = document.getElementById('status');
+
+      // Add webkitdirectory + directory dynamically
+      input.setAttribute('webkitdirectory', '');
+      input.setAttribute('directory', '');
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        status.textContent = '📦 Uploading files...';
+
+        const files = input.files;
+        if (!files.length) {
+          status.textContent = '⚠️ Please select a folder to upload.';
+          return;
+        }
+
+        const formData = new FormData();
+        for (const file of files) {
+          formData.append('files', file, file.webkitRelativePath);
+        }
+
+        try {
+          const response = await fetch('https://your-n8n-webhook-url', {
+            method: 'POST',
+            body: formData,
+          });
+
+          const result = await response.json();
+          if (result.report_url) {
+            status.innerHTML = `✅ Report generated: <a href="${result.report_url}" class="text-blue-600 underline">Download here</a>`;
+          } else {
+            status.textContent = '✅ Upload complete! Processing report...';
+          }
+        } catch (err) {
+          console.error(err);
+          status.textContent = '❌ Upload failed. Please try again.';
+        }
+      });
+    </script>
+  </body>
+</html>
