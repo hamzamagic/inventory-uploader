@@ -118,11 +118,8 @@
         transcriptionBox.value = 'Transcribing...';
 
         try {
-          const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
+          const response = await fetch('/api/transcribe', {
             method: 'POST',
-            headers: {
-              Authorization: 'Bearer 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' // Replace securely
-            },
             body: formData
           });
           const data = await response.json();
